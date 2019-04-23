@@ -3,7 +3,7 @@
 #############################################################
 [experiment_settings]
 
-output_folder = [path to Step2-counts_to_gene_scores]
+output_folder = Demo/Step2/output
 experiment_name = ctx_demo
 
 #############################################################

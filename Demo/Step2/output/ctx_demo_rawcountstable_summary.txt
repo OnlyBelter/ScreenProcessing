@@ -1,0 +1,6 @@
+T0	Rep1	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index10_full.counts	5442483
+T0	Rep2	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index12_full.counts	5928720
+treated	Rep1	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index1_full.counts	5583415
+treated	Rep2	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index14_full.counts	5796805
+untreated	Rep1	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index3_full.counts	6012869
+untreated	Rep2	/home/belter/github/ScreenProcessing/Demo/Step2/count_files/Demo_index6_full.counts	5739157

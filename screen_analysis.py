@@ -550,7 +550,8 @@ def changeDisplayFigureSettings(newDirectory=None, newImageExtension = 'png', ne
     
     global figureScale
     figureScale = newFigureScale
-    
+
+
 def plotGrid(axis, vert_origin = True, horiz_origin=True, unity=True):
     ylim = axis.get_ylim()
     xlim = axis.get_xlim()

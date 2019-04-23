@@ -1,3 +1,4 @@
+# step 2
 # merge counts files into a data table, combine reads from multiple sequencing runs,
 #  filter by read counts, generate phenotype scores, average replicates
 
@@ -30,15 +31,15 @@ def processExperimentsFromConfig(configFile, libraryDirectory, generatePlots='pn
 
     printNow(parseString)
 
-    if parseStatus > 0: #Critical errors in parsing
+    if parseStatus > 0:  # Critical errors in parsing
         print 'Exiting due to experiment config file errors\n'
         return
 
     makeDirectory(exptParameters['output_folder'])
-    outbase = os.path.join(exptParameters['output_folder'],exptParameters['experiment_name'])
+    outbase = os.path.join(exptParameters['output_folder'], exptParameters['experiment_name'])
     
     if generatePlots != 'off':
-        plotDirectory = os.path.join(exptParameters['output_folder'],exptParameters['experiment_name'] + '_plots')
+        plotDirectory = os.path.join(exptParameters['output_folder'], exptParameters['experiment_name'] + '_plots')
         makeDirectory(plotDirectory)
     
         screen_analysis.changeDisplayFigureSettings(newDirectory=plotDirectory, newImageExtension = generatePlots, newPlotWithPylab = False)
@@ -47,14 +48,17 @@ def processExperimentsFromConfig(configFile, libraryDirectory, generatePlots='pn
     #load in library table and filter to requested sublibraries
     printNow('Accessing library information')
 
-    libraryTable = pd.read_csv(os.path.join(libraryDirectory, librariesToTables[exptParameters['library']]), sep = '\t', tupleize_cols=False, header=0, index_col=0).sort_index()
+    libraryTable = pd.read_csv(os.path.join(libraryDirectory, librariesToTables[exptParameters['library']]),
+                               sep='\t', tupleize_cols=False, header=0, index_col=0).sort_index()
+    # check if the sublibrary in library table is in experiment configure file
+    # /home/belter/github/ScreenProcessing/Demo/Step2/experiment_config_fileout.txt
     sublibColumn = libraryTable.apply(lambda row: row['sublibrary'].lower() in exptParameters['sublibraries'], axis=1)
 
     if sum(sublibColumn) == 0:
         print 'After limiting analysis to specified sublibraries, no elements are left'
         return
-
-    libraryTable[sublibColumn].to_csv(outbase + '_librarytable.txt', sep='\t', tupleize_cols = False)
+    # outbase: Demo/Step2/output/ctx_demo, only output the sublibrary which included in experiment config file
+    libraryTable[sublibColumn].to_csv(outbase + '_librarytable.txt', sep='\t', tupleize_cols=False)
 
     #load in counts, create table of total counts in each and each file as a column
     printNow('Loading counts data')
@@ -78,8 +82,8 @@ def processExperimentsFromConfig(configFile, libraryDirectory, generatePlots='pn
     #merge counts for same conditions/replicates, and create summary table
     #save scatter plot before each merger, and histogram of counts post mergers
     printNow('Merging experiment counts split across lanes/indexes')
-    
-    exptGroups = countsTable.groupby(level=[0,1], axis=1)
+    # TODO: here
+    exptGroups = countsTable.groupby(level=[0, 1], axis=1)
     mergedCountsTable = exptGroups.aggregate(np.sum)
     mergedCountsTable.to_csv(outbase + '_mergedcountstable.txt', sep='\t', tupleize_cols = False)
     mergedCountsTable.sum().to_csv(outbase + '_mergedcountstable_summary.txt', sep='\t')
@@ -282,7 +286,7 @@ def getBestTranscript(group):
 
 #return Series of counts from a counts file indexed by element id
 def readCountsFile(countsFileName):
-    countsTable = pd.read_csv(countsFileName, header=None, delimiter='\t', names=['id','counts'])
+    countsTable = pd.read_csv(countsFileName, header=None, delimiter='\t', names=['id', 'counts'])
     countsTable.index = countsTable['id']
     return countsTable['counts']
 
@@ -482,7 +486,7 @@ def computeGeneScores(libraryTable, scoreTable, normToNegs = True):
         for name, group in geneGroups:
             if name == 'negative_control':
                 continue
-            colList.append(geneStats(group[expt],negArray)) #group[expt].apply(geneStats, axis = 0, negArray = negArray))
+            colList.append(geneStats(group[expt], negArray)) #group[expt].apply(geneStats, axis = 0, negArray = negArray))
             groupList.append(name)
             
         scoredColumns.append(pd.DataFrame(np.array(colList), index = groupList, columns = [('KS'),('KS_sign'),('MW')]))
@@ -497,20 +501,20 @@ def applyGeneScoreFunction(groupedPhenotypeTable, negativeTable, analysis, analy
         if numToAverage <= 0:
             means = groupedPhenotypeTable.aggregate(np.mean)
             counts = groupedPhenotypeTable.count()
-            result = pd.concat([means,counts],axis=1,keys=['average of all phenotypes','average of all phenotypes_sgRNAcount'])
+            result = pd.concat([means, counts], axis=1, keys=['average of all phenotypes','average of all phenotypes_sgRNAcount'])
         else:
             means = groupedPhenotypeTable.apply(lambda x: averageBestN(x, numToAverage))
             counts = groupedPhenotypeTable.count()
-            result = pd.concat([means,counts],axis=1,keys=['average phenotype of strongest %d'%numToAverage, 'sgRNA count_avg'])
+            result = pd.concat([means, counts], axis=1, keys=['average phenotype of strongest %d'%numToAverage, 'sgRNA count_avg'])
     elif analysis == 'calculate_mw':
         pvals = groupedPhenotypeTable.apply(lambda x: applyMW(x, negativeTable))
         counts = groupedPhenotypeTable.count()
-        result = pd.concat([pvals,counts],axis=1,keys=['Mann-Whitney p-value','sgRNA count_MW'])
+        result = pd.concat([pvals,counts], axis=1, keys=['Mann-Whitney p-value','sgRNA count_MW'])
     elif analysis == 'calculate_nth':
         nth = analysisParamList[0]
         pvals = groupedPhenotypeTable.aggregate(lambda x: sorted(x, key=abs, reverse=True)[nth-1] if nth <= len(x) else np.nan)
         counts = groupedPhenotypeTable.count()
-        result = pd.concat([pvals,counts],axis=1,keys=['%dth best score' % nth,'sgRNA count_nth best'])
+        result = pd.concat([pvals, counts], axis=1, keys=['%dth best score' % nth,'sgRNA count_nth best'])
     else:
         raise ValueError('Analysis %s not recognized or not implemented' % analysis)
 
@@ -541,8 +545,8 @@ def parseGKFile(gkFileName):
     return gkdict
 
 
-
 if __name__ == '__main__':
+    # python process_experiments.py Demo/Step2/experiment_config_file_DEMO.txt library_tables/
     parser = argparse.ArgumentParser(description='Calculate sgRNA- and gene-level phenotypes based on sequencing read counts, as specified by the experiment config file.')
     parser.add_argument('Config_File', help='Experiment config file specifying screen analysis settings (see accomapnying BLANK and DEMO files).')
     parser.add_argument('Library_File_Directory', help='Directory containing reference library tables and the library_config.txt file.')

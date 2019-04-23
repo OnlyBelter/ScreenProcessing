@@ -27,16 +27,17 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
     parsedSections = set(parser.sections())
     
     if len(expectedSections) != len(parsedSections) and len(expectedSections) != len(expectedSections.intersection(parsedSections)):
-        return paramDict, 1, 'Config file does not have all required sections or has extraneous sections!\nExpected:' + ','.join(expectedSections) + '\nFound:' + ','.join(parsedSections)
+        return paramDict, 1, 'Config file does not have all required sections or has extraneous sections!\nExpected:'\
+               + ','.join(expectedSections) + '\nFound:' + ','.join(parsedSections)
 
     ##experiment settings
-    if parser.has_option('experiment_settings','output_folder'):
-        paramDict['output_folder'] = parser.get('experiment_settings','output_folder') #ways to check this is a valid path?
+    if parser.has_option('experiment_settings', 'output_folder'):
+        paramDict['output_folder'] = parser.get('experiment_settings', 'output_folder')  # ways to check this is a valid path?
     else:
         warningString += 'No output folder specified, defaulting to current directory\n.'
         paramDict['output_folder'] = os.curdir()
         
-    if parser.has_option('experiment_settings','experiment_name'):
+    if parser.has_option('experiment_settings', 'experiment_name'):
         paramDict['experiment_name'] = parser.get('experiment_settings','experiment_name')
     else:
         warningString += 'No experiment name specified, defaulting to \'placeholder_expt_name\'\n.'
@@ -45,8 +46,8 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
         
     ##library settings
     libraryDict = librariesToSublibrariesDict
-    if parser.has_option('library_settings','library'):
-        parsedLibrary = parser.get('library_settings','library')
+    if parser.has_option('library_settings', 'library'):
+        parsedLibrary = parser.get('library_settings', 'library')
         
         if parsedLibrary.lower() in libraryDict:
             paramDict['library'] = parsedLibrary.lower()
@@ -78,8 +79,8 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
             
     
     ##counts files
-    if parser.has_option('counts_files','counts_file_string'):
-        countsFileString = parser.get('counts_files','counts_file_string').strip()
+    if parser.has_option('counts_files', 'counts_file_string'):
+        countsFileString = parser.get('counts_files', 'counts_file_string').strip()
         
         paramDict['counts_file_list'] = []
         
@@ -99,7 +100,7 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
                     
                 condition, replicate = stringLine.split(':')[1].split('|')
                 
-                paramDict['counts_file_list'].append((condition, replicate,parsedPath))
+                paramDict['counts_file_list'].append((condition, replicate, parsedPath))
             
     else:
         warningString += 'No counts files entered\n'
@@ -107,7 +108,7 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
         
     
     ##filter settings
-    filterOptions = ['either','both']
+    filterOptions = ['either', 'both']
     if parser.has_option('filter_settings','filter_type') and parser.get('filter_settings','filter_type').lower() in filterOptions:
         paramDict['filter_type'] = parser.get('filter_settings','filter_type').lower()
     else:
@@ -188,7 +189,7 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
 
     
     ##Growth Values
-    if parser.has_option('growth_values','growth_value_string') and len(parser.get('growth_values','growth_value_string').strip()) != 0:
+    if parser.has_option('growth_values', 'growth_value_string') and len(parser.get('growth_values', 'growth_value_string').strip()) != 0:
         growthValueString = parser.get('growth_values','growth_value_string').strip()
 
         if 'condition_tuples' in paramDict and 'counts_file_list' in paramDict:
@@ -319,7 +320,7 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
             exitStatus += 1
 
         if 'calculate_ave' in paramDict['analyses']:
-            if parser.has_option('gene_analysis','best_n'):
+            if parser.has_option('gene_analysis', 'best_n'):
                 try:
                     paramDict['analyses']['calculate_ave'].append(parser.getint('gene_analysis','best_n'))
                 except ValueError:
@@ -343,7 +344,7 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
     #analyze by K-S, skipping for now
 
     #analyze by nth best sgRNA
-    if parser.has_option('gene_analysis','calculate_nth'):
+    if parser.has_option('gene_analysis', 'calculate_nth'):
         try:
             if parser.getboolean('gene_analysis','calculate_nth') == True:
                 paramDict['analyses']['calculate_nth'] = []
@@ -364,12 +365,12 @@ def parseExptConfig(configFile, librariesToSublibrariesDict):
     else:
         warningString += 'Nth best sgRNA analysis not specified, defaulting to False\n'
 
-
     if len(paramDict['analyses']) == 0:
         warningString += 'No analyses selected to compute gene scores\n' #should this raise exitStatus?
 
     return paramDict, exitStatus, warningString
-    
+
+
 #Parse the library configuration file to get the available libraries, sublibraries, and corresponding library table files
 def parseLibraryConfig(libConfigFile):
     parser = SafeConfigParser()

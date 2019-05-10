@@ -1,7 +1,11 @@
+#####################
 # step 1
 # pipeline to generate read counts and phenotype scores directly from gzipped sequencing data
 # count the number of each sgRNA occurring in each sample
+# update to python 3.6 by Xin Xiong <onlybelter@outlook.com>
+#####################
 
+from __future__ import print_function, division
 import os
 import sys
 import gzip
@@ -11,14 +15,25 @@ import glob
 import argparse
 
 
-### Sequence File to Trimmed Fasta Functions ###
-
-
 def parallelSeqFileToCountsParallel(fastqGzFileNameList, fastaFileNameList, countFileNameList, processPool,
                                     libraryFasta, startIndex=None, stopIndex=None, test=False):
+    """
+    Sequence File to Trimmed Fasta Functions
+    :param fastqGzFileNameList: a list that contains the file path of all .fastq or .fastq.gz file
+                               ['Demo/Step1/Sequencing_files/Demo_index12.fastq', ...]
+    :param fastaFileNameList: a list that contains file name of unaligned fasta file, ['Demo_index12_unaligned.fa', ...]
+    :param countFileNameList: a list of count files path,
+                              ['Demo/Step1/output/count_files/Demo_index12_CRISPRi_v1_human.trim_1_35.fa.counts', ...]
+    :param processPool:
+    :param libraryFasta: the reference library file (such as sgRNA sequence)
+    :param startIndex:
+    :param stopIndex:
+    :param test:
+    :return:
+    """
     if len(fastqGzFileNameList) != len(fastaFileNameList):
         raise ValueError('In and out file lists must be the same length')
-
+    # give a parameter list to processPool.map function for multiprocessing
     arglist = zip(fastqGzFileNameList, fastaFileNameList, countFileNameList, [libraryFasta] * len(fastaFileNameList),
                   [startIndex] * len(fastaFileNameList), [stopIndex] * len(fastaFileNameList),
                   [test] * len(fastaFileNameList))
@@ -32,8 +47,20 @@ def seqFileToCountsWrapper(arg):
     return seqFileToCounts(*arg)
 
 
-def seqFileToCounts(infileName, fastaFileName, countFileName, libraryFasta, startIndex=None, stopIndex=None,
-                    test=False):
+def seqFileToCounts(infileName, fastaFileName, countFileName, libraryFasta,
+                    startIndex=None, stopIndex=None, test=False):
+    """
+
+    :param infileName:
+    :param fastaFileName:
+    :param countFileName: count file path,
+                          'Demo/Step1/output/count_files/Demo_index12_CRISPRi_v1_human.trim_1_35.fa.counts'
+    :param libraryFasta: given reference library file, fasta format
+    :param startIndex: the start index of each sequence in library
+    :param stopIndex: the end index of each sequence in library
+    :param test:
+    :return:
+    """
     printNow('Processing %s' % infileName)
 
     fileType = None
@@ -57,8 +84,8 @@ def seqFileToCounts(infileName, fastaFileName, countFileName, libraryFasta, star
 
     seqToIdDict, idsToReadcountDict, expectedReadLength = parseLibraryFasta(libraryFasta)
 
-    curRead = 0
-    numAligning = 0
+    curRead = 0  # total reads
+    numAligning = 0  # the reads which is in the library
 
     with open(fastaFileName, 'w') as unalignedFile:
         for i, fastqLine in enumerate(infile):
@@ -72,13 +99,13 @@ def seqFileToCounts(infileName, fastaFileName, countFileName, libraryFasta, star
                 if i == 1 and len(seq) != expectedReadLength:
                     raise ValueError('Trimmed read length does not match expected reference read length')
 
-                if seq in seqToIdDict:  # counting sgRNA
-                    for seqId in seqToIdDict[seq]:
+                if seq in seqToIdDict:  # check if this seq is included in the ref library
+                    for seqId in seqToIdDict[seq]:  # counting sgRNA, if this seq is in the ref library, all SeqId + 1
                         idsToReadcountDict[seqId] += 1
 
                     numAligning += 1
 
-                else:
+                else:  # the sequence that doesn't contain in the ref library
                     unalignedFile.write('>%d\n%s\n' % (i, seq))
 
                 curRead += 1
@@ -96,9 +123,12 @@ def seqFileToCounts(infileName, fastaFileName, countFileName, libraryFasta, star
     return curRead, numAligning, numAligning * 100.0 / curRead
 
 
-### Map File to Counts File Functions ###
-
 def parseLibraryFasta(libraryFasta):
+    """
+    Map File to Counts File Functions
+    :param libraryFasta:
+    :return:
+    """
     seqToIds, idsToReadcounts, readLengths = dict(), dict(), []
 
     curSeqId = ''
@@ -120,19 +150,23 @@ def parseLibraryFasta(libraryFasta):
                 curSeq = ''
 
             else:
-                curSeq += line.strip().upper()
+                curSeq += line.strip().upper()  # add multiple lines seq together
 
     if len(seqToIds) == 0 or len(idsToReadcounts) == 0 or readLengths[0] == 0:
         raise ValueError('library fasta could not be parsed or contains no sequences')
     elif max(readLengths) != min(readLengths):
-        print min(readLengths), max(readLengths)
+        print(min(readLengths), max(readLengths))
         raise ValueError('library reference sequences are of inconsistent lengths')
 
     return seqToIds, idsToReadcounts, readLengths[0]
 
 
-### Utility Functions ###
 def parseSeqFileNames(fileNameList):
+    """
+    Utility Functions
+    :param fileNameList: the list of all .fastq file path
+    :return: all .fastq file path list and base name list without ".fastq"
+    """
     infileList = []
     outfileBaseList = []
 
@@ -155,7 +189,7 @@ def makeDirectory(path):
 
 
 def printNow(printInput):
-    print printInput
+    print(printInput)
     sys.stdout.flush()
 
 
@@ -196,7 +230,6 @@ if __name__ == '__main__':
     ###catch input mistakes###
     numProcessors = max(args.processors, 1)
 
-    # the list of all .fastq file path
     infileList, outfileBaseList = parseSeqFileNames(args.Seq_File_Names)
     if len(infileList) == 0:
         sys.exit('Input error: no sequencing files found')
@@ -234,7 +267,7 @@ if __name__ == '__main__':
         sys.exit('Error while processing sequencing files: ' + ' '.join(err.args))
 
     for filename, result in resultList:
-        print filename + ':\n\t%.2E reads\t%.2E aligning (%.2f%%)' % result
+        print(filename + ':\n\t%.2E reads\t%.2E aligning (%.2f%%)' % result)
 
     pool.close()
     pool.join()

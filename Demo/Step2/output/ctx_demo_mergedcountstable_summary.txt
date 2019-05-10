@@ -1,0 +1,6 @@
+T0	Rep1	5442483
+T0	Rep2	5928720
+treated	Rep1	5583415
+treated	Rep2	5796805
+untreated	Rep1	6012869
+untreated	Rep2	5739157

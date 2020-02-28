@@ -1,6 +1,9 @@
+###########################
 # step 2
 # merge counts files into a data table, combine reads from multiple sequencing runs,
 # filter by read counts, generate phenotype scores, average replicates
+# source: https://github.com/mhorlbeck/ScreenProcessing
+###########################
 
 from __future__ import print_function, division
 import pandas as pd

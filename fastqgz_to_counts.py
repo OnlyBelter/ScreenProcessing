@@ -3,6 +3,7 @@
 # pipeline to generate read counts and phenotype scores directly from gzipped sequencing data
 # count the number of each sgRNA occurring in each sample
 # update to python 3.6 by Xin Xiong <onlybelter@outlook.com>
+# source: https://github.com/mhorlbeck/ScreenProcessing
 #####################
 
 from __future__ import print_function, division
